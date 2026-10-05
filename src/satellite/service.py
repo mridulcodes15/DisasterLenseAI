@@ -1,14 +1,77 @@
 from pathlib import Path
 from typing import Optional
 
-import numpy as np
 import rasterio
+from pyproj import CRS, Transformer
+from shapely.ops import transform as shapely_transform
 
 from src.core.models import ChangeResult
 from src.satellite.change_detection import detect_change, mask_to_geometry
 from src.satellite.confidence import calculate_confidence
 from src.satellite.preprocessing import load_raster
 from src.satellite.registration import align_images
+
+
+def _calculate_area_km2(
+    geometry,
+    crs,
+) -> float:
+    """
+    Calculate geometry area in square kilometres.
+
+    If the source CRS is projected, the geometry is transformed to
+    an appropriate metre-based CRS when necessary.
+
+    If the source CRS is geographic (latitude/longitude), the
+    geometry is transformed to a local UTM CRS before calculating area.
+    """
+    if geometry is None:
+        return 0.0
+
+    if crs is None:
+        raise ValueError(
+            "Raster CRS is required to calculate affected area."
+        )
+
+    source_crs = CRS.from_user_input(crs)
+
+    if source_crs.is_projected:
+        area_m2 = geometry.area
+        return float(area_m2 / 1_000_000)
+
+    if not source_crs.is_geographic:
+        raise ValueError(
+            f"Unsupported CRS type for area calculation: {source_crs}"
+        )
+
+    centroid = geometry.centroid
+
+    longitude = centroid.x
+    latitude = centroid.y
+
+    zone = int((longitude + 180) // 6) + 1
+
+    if latitude >= 0:
+        utm_epsg = 32600 + zone
+    else:
+        utm_epsg = 32700 + zone
+
+    utm_crs = CRS.from_epsg(utm_epsg)
+
+    transformer = Transformer.from_crs(
+        source_crs,
+        utm_crs,
+        always_xy=True,
+    )
+
+    projected_geometry = shapely_transform(
+        transformer.transform,
+        geometry,
+    )
+
+    area_m2 = projected_geometry.area
+
+    return float(area_m2 / 1_000_000)
 
 
 def analyze_change(
@@ -46,6 +109,7 @@ def analyze_change(
     )
 
     transform = before_metadata["transform"]
+
     change_geometry = mask_to_geometry(
         change_mask,
         transform,
@@ -54,11 +118,10 @@ def analyze_change(
     affected_area_km2 = None
 
     if change_geometry is not None:
-        pixel_width = abs(transform.a)
-        pixel_height = abs(transform.e)
-
-        area_m2 = change_geometry.area * pixel_width * pixel_height
-        affected_area_km2 = float(area_m2 / 1_000_000)
+        affected_area_km2 = _calculate_area_km2(
+            change_geometry,
+            before_metadata.get("crs"),
+        )
 
     warnings = []
 
