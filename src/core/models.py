@@ -44,6 +44,12 @@ class ChangeResult:
 class ContextResult:
     """Geospatial, population, infrastructure and environmental context."""
 
+    # Spatial impact
+    aoi_area_km2: Optional[float] = None
+    affected_area_km2: Optional[float] = None
+    affected_percentage: Optional[float] = None
+
+    # Population exposure
     population_exposed: Optional[float] = None
 
     affected_roads: list[Any] = field(default_factory=list)
@@ -52,11 +58,11 @@ class ContextResult:
 
     # Environmental context
     weather: dict[str, Any] = field(default_factory=dict)
+    terrain: dict[str, Any] = field(default_factory=dict)
     alerts: list[dict[str, Any]] = field(default_factory=list)
 
     # Supporting data sources
     sources: list[str] = field(default_factory=list)
-
 
 @dataclass
 class PriorityZone:
