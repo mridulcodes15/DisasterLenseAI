@@ -16,3 +16,10 @@ htmlcov/
 
 .DS_Store
 Thumbs.db
+# Local satellite data and generated flood-analysis intermediates
+data/raw/
+data/demo/flood/*.npy
+data/demo/flood/*.npz
+data/demo/flood/*.png
+data/demo/flood/detected_flood_polygon.geojson
+data/demo/flood/flood_extent_candidates.geojson

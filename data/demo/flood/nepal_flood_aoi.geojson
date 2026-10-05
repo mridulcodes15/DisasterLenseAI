@@ -1,0 +1,25 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Nepal Flood AOI",
+        "location": "Nakhhu Khola, Kathmandu Valley",
+        "disaster": "flood"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [85.2850, 27.6500],
+            [85.3150, 27.6500],
+            [85.3150, 27.6750],
+            [85.2850, 27.6750],
+            [85.2850, 27.6500]
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -130,7 +130,7 @@ def analyze_change(
 
     return ChangeResult(
         status="success",
-        hazard=hazard,
+        disaster_type=hazard,
         change_geometry=change_geometry,
         affected_area_km2=affected_area_km2,
         pre_date=pre_date,

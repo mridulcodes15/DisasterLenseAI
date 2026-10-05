@@ -1,0 +1,26 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Nakhhu Khola Flood AOI",
+        "event": "Nepal floods September 2024",
+        "date_start": "2024-09-27",
+        "date_end": "2024-09-29"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [85.2850, 27.6500],
+            [85.3150, 27.6500],
+            [85.3150, 27.6750],
+            [85.2850, 27.6750],
+            [85.2850, 27.6500]
+          ]
+        ]
+      }
+    }
+  ]
+}

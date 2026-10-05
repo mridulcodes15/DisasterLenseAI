@@ -237,7 +237,7 @@ def test_analyze_change(tmp_path):
     )
 
     assert result.status == "success"
-    assert result.hazard == "flood"
+    assert result.disaster_type == "flood"
     assert result.change_geometry is not None
     assert result.change_geometry.geom_type == "Polygon"
     assert result.affected_area_km2 == pytest.approx(9e-06)
