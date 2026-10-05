@@ -3,20 +3,35 @@ from typing import Any, Optional
 
 
 @dataclass
+class DisasterRequest:
+    """Input request for a disaster analysis."""
+
+    disaster_type: str
+    latitude: float
+    longitude: float
+    radius_km: float
+    event_date: str
+
+
+@dataclass
 class ChangeResult:
     """Output from the satellite/change-detection pipeline."""
 
     status: str
-    hazard: str
+    disaster_type: str
 
-    # Spatial information
-    change_geometry: Any = None
-    affected_area_km2: Optional[float] = None
-
-    # Detection metadata
+    # Temporal comparison
     pre_date: Optional[str] = None
     post_date: Optional[str] = None
     sensor: Optional[str] = None
+
+    # Spatial information
+    change_mask: Any = None
+    change_geometry: Any = None
+    affected_area_km2: Optional[float] = None
+
+    # Detection severity and confidence
+    severity: Optional[float] = None
     confidence: Optional[float] = None
 
     # Supporting evidence
@@ -27,41 +42,104 @@ class ChangeResult:
 
 @dataclass
 class ContextResult:
-    """Geospatial and environmental context for a detected change."""
+    """Geospatial, population, infrastructure and environmental context."""
 
     population_exposed: Optional[float] = None
+
     affected_roads: list[Any] = field(default_factory=list)
     affected_bridges: list[Any] = field(default_factory=list)
     affected_hospitals: list[Any] = field(default_factory=list)
 
-    # Supporting environmental context
+    # Environmental context
     weather: dict[str, Any] = field(default_factory=dict)
+    alerts: list[dict[str, Any]] = field(default_factory=list)
 
-    # Data sources used for the context analysis
+    # Supporting data sources
     sources: list[str] = field(default_factory=list)
+
+
+@dataclass
+class PriorityZone:
+    """A spatial zone ranked for emergency response priority."""
+
+    zone_id: str
+    geometry: Any = None
+
+    # 0-100 priority score
+    priority_score: float = 0.0
+
+    confidence: float = 0.0
+
+    population_exposed: float = 0.0
+    infrastructure_count: int = 0
+
+    # Human-readable explanation
+    reasons: list[str] = field(default_factory=list)
 
 
 @dataclass
 class PriorityResult:
     """Priority information generated from change + context."""
 
-    hazard: Optional[str] = None
-    zones: list[Any] = field(default_factory=list)
+    disaster_type: Optional[str] = None
 
-    # Priority scores should use a 0-100 scale
+    zones: list[PriorityZone] = field(default_factory=list)
+
+    # Zone ID -> score
     priority_scores: dict[str, float] = field(default_factory=dict)
 
     confidence: Optional[float] = None
+
+    # Zone ID -> explanation
     reasons: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass
+class FutureImpact:
+    """Potential future impact based on observed evidence and external context."""
+
+    severity: str = "UNKNOWN"
+
+    affected_zones: list[str] = field(default_factory=list)
+
+    rainfall_factor: Optional[float] = None
+    alert_factor: Optional[float] = None
+
+    confidence: float = 0.0
+
+    # Explicit assumptions/limitations
+    assumptions: list[str] = field(default_factory=list)
+
+
+@dataclass
+class RouteResult:
+    """Candidate route ranked using known disaster-related risk."""
+
+    route_id: str
+
+    distance_km: float = 0.0
+
+    affected_segments: int = 0
+
+    risk_score: float = 0.0
+
+    reasons: list[str] = field(default_factory=list)
+
+
+@dataclass
 class IncidentReport:
-    """Evidence-grounded incident report."""
+    """Evidence-grounded AI incident report."""
 
     summary: str = ""
-    priority_zones: list[Any] = field(default_factory=list)
+
     observations: list[str] = field(default_factory=list)
+
+    priority_zones: list[str] = field(default_factory=list)
+
     uncertainties: list[str] = field(default_factory=list)
+
+    recommendations: list[str] = field(default_factory=list)
+
     sources: list[str] = field(default_factory=list)
+
     confidence: Optional[float] = None
