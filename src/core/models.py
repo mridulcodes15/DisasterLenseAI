@@ -76,7 +76,6 @@ class PriorityZone:
 
     # 0-100 priority score
     priority_score: float = 0.0
-
     confidence: float = 0.0
 
     population_exposed: float = 0.0
@@ -91,12 +90,10 @@ class PriorityResult:
     """Priority information generated from change + context."""
 
     disaster_type: Optional[str] = None
-
     zones: list[PriorityZone] = field(default_factory=list)
 
     # Zone ID -> score
     priority_scores: dict[str, float] = field(default_factory=dict)
-
     confidence: Optional[float] = None
 
     # Zone ID -> explanation
@@ -108,7 +105,6 @@ class FutureImpact:
     """Potential future impact based on observed evidence and external context."""
 
     severity: str = "UNKNOWN"
-
     affected_zones: list[str] = field(default_factory=list)
 
     rainfall_factor: Optional[float] = None
@@ -122,17 +118,39 @@ class FutureImpact:
 
 @dataclass
 class RouteResult:
-    """Candidate route ranked using known disaster-related risk."""
+    """Candidate evacuation path with map-ready geometry and risk details."""
 
     route_id: str
-
     distance_km: float = 0.0
-
     affected_segments: int = 0
-
     risk_score: float = 0.0
-
     reasons: list[str] = field(default_factory=list)
+
+    # Geometry of the complete path, for map rendering.
+    geometry: Any = None
+
+    # Destination information.
+    destination_id: Optional[str] = None
+    destination_name: Optional[str] = None
+
+    # Explicit status and limitations for downstream reporting.
+    status: str = "unverified"
+    warnings: list[str] = field(default_factory=list)
+
+
+@dataclass
+class RoutingResult:
+    """Overall outcome of evacuation route calculation."""
+
+    status: str = "unavailable"
+    routes: list[RouteResult] = field(default_factory=list)
+
+    # The AOI centroid is a demo origin, never the user's location.
+    origin_label: str = "AOI centroid (demo only)"
+
+    destination_available: bool = False
+    warnings: list[str] = field(default_factory=list)
+    sources: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -140,15 +158,9 @@ class IncidentReport:
     """Evidence-grounded AI incident report."""
 
     summary: str = ""
-
     observations: list[str] = field(default_factory=list)
-
     priority_zones: list[str] = field(default_factory=list)
-
     uncertainties: list[str] = field(default_factory=list)
-
     recommendations: list[str] = field(default_factory=list)
-
     sources: list[str] = field(default_factory=list)
-
     confidence: Optional[float] = None

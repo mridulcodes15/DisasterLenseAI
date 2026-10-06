@@ -14,11 +14,11 @@ def load_change_result(
     extent_path: str | Path = DEFAULT_FLOOD_EXTENT,
 ) -> ChangeResult:
     """
-    Load the persisted satellite-derived change geometry and expose it
-    through the shared ChangeResult contract.
+    Load a supplied change extent through the shared ChangeResult contract.
 
-    The GeoJSON polygons are the actual detected flood extent produced
-    by the satellite pipeline. The AOI is not used as the change geometry.
+    The bundled default GeoJSON is prepared demo geometry. Its embedded
+    dates, sensor, area, and confidence are not verified satellite evidence.
+    Custom extents are passed through with their supplied metadata.
     """
     extent_path = Path(extent_path)
 
@@ -36,6 +36,7 @@ def load_change_result(
         )
 
     metadata = data.get("metadata", {})
+    is_bundled_demo = extent_path.resolve() == DEFAULT_FLOOD_EXTENT.resolve()
     features = data.get("features", [])
 
     geometries = [
@@ -51,15 +52,23 @@ def load_change_result(
 
     change_geometry = unary_union(geometries)
 
+    warnings = list(metadata.get("warnings", []))
+    if is_bundled_demo:
+        warnings.append(
+            "Prepared demo geometry only; embedded dates, sensor, area and "
+            "confidence are unverified and must not be presented as "
+            "satellite-detected output."
+        )
+
     return ChangeResult(
-        status="success",
+        status="demo_unverified" if is_bundled_demo else "success",
         disaster_type=metadata.get("disaster_type", "flood"),
-        pre_date=metadata.get("pre_date"),
-        post_date=metadata.get("post_date"),
-        sensor=metadata.get("sensor"),
+        pre_date=None if is_bundled_demo else metadata.get("pre_date"),
+        post_date=None if is_bundled_demo else metadata.get("post_date"),
+        sensor=None if is_bundled_demo else metadata.get("sensor"),
         change_geometry=change_geometry,
-        affected_area_km2=metadata.get("affected_area_km2"),
-        confidence=metadata.get("confidence"),
-        warnings=metadata.get("warnings", []),
+        affected_area_km2=(None if is_bundled_demo else metadata.get("affected_area_km2")),
+        confidence=None if is_bundled_demo else metadata.get("confidence"),
+        warnings=warnings,
         sources=[str(extent_path)],
     )
