@@ -1,3 +1,4 @@
+
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
@@ -52,6 +53,7 @@ class ContextResult:
     # Population exposure
     population_exposed: Optional[float] = None
 
+    # Infrastructure exposure
     affected_roads: list[Any] = field(default_factory=list)
     affected_bridges: list[Any] = field(default_factory=list)
     affected_hospitals: list[Any] = field(default_factory=list)
@@ -63,6 +65,7 @@ class ContextResult:
 
     # Supporting data sources
     sources: list[str] = field(default_factory=list)
+
 
 @dataclass
 class PriorityZone:
